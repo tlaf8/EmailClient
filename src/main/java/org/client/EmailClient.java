@@ -5,6 +5,9 @@ import java.io.IOException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.Properties;
+import javax.mail.*;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
 public class EmailClient {
     private String email = null;
@@ -12,10 +15,21 @@ public class EmailClient {
     private String db_user = null;
     private String db_password = null;
     private Connection connection = null;
+    Session session = null;
 
     public EmailClient(String url, String credentials_path) throws RuntimeException, SQLException, IOException {
         read_credentials(credentials_path);
         connect_db(url);
+        Properties email_properties = new Properties();
+        email_properties.put("mail.smtp.host", "smtp.gmail.com");
+        email_properties.put("mail.smtp.port", "587");
+        email_properties.put("mail.smtp.auth", "true");
+        email_properties.put("mail.smtp.starttls.enable", "true");
+        session = Session.getInstance(email_properties, new Authenticator() {
+            protected PasswordAuthentication getPasswordAuthentication() {
+                return new PasswordAuthentication(email, email_password);
+            }
+        });
         System.out.printf("Successful connection to database at \033[94m%s\033[0m\n", url);
     }
 
@@ -41,6 +55,16 @@ public class EmailClient {
             mailing_list.next();
             return mailing_list.getBoolean("mailing_list");
         }
+    }
+
+    public void send_email(String to, String subject, String body) throws MessagingException {
+        MimeMessage message = new MimeMessage(session);
+        message.setFrom(new InternetAddress(email));
+        message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+        message.setSubject(subject);
+        message.setText(body);
+        Transport.send(message);
+        System.out.printf("Email sent successfully to \033[94m%s\033[0m\n", to);
     }
 
     private ResultSet execute(String sql) throws RuntimeException, SQLException {

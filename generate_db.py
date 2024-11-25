@@ -15,7 +15,7 @@ with open('sql_dump.sql', 'w+') as sql_dump:
     sql_dump.write('INSERT INTO users (name, email, mailing_list, registered) VALUES\n')
     for i in range(USER_COUNT):
         name = sample(names, 2)
-        email = f'{name[0]}.{name[1]}{randint(1000, 9999)}@gmail.com'.lower()
+        email = f'{name[0]}.{name[1]}{randint(1000, 9999)}@fakemail.com'.lower()
         registered = randint(0, 1)
         mailing_list = randint(0, 1) if registered else 0
         if i < USER_COUNT - 1:
